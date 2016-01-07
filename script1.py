@@ -1,4 +1,4 @@
-#scratch pad for new scripting-testing upload with ssh
+#scratch pad for new scripting-testing upload with ssh------
 #import math
 #squarert = [math.sqrt(x) for x in [1,4,9,16,25,36,49,64]]
 #print(squarert)
