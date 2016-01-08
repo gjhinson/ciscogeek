@@ -16,7 +16,7 @@ def main():
             if fname.endswith('router.txt'):
                 process_file(os.path.join(root,fname))
         for dirname in dirs:
-            if fname.endswith('.txt'):
+            if fname.endswith('router.txt'):
                 process_file(os.path.join(root,fname))
         
 if __name__ == "__main__":
