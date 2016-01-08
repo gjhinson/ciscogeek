@@ -1,0 +1,393 @@
+!
+!
+card type t1 0 1
+card type t1 0 3
+logging buffered 51200 warnings
+!
+aaa session-id common
+clock timezone PST -8 0
+clock summer-time PDT recurring
+no network-clock-participate wic 1 
+no network-clock-participate wic 3 
+!
+!
+!
+no ip domain lookup
+ip multicast-routing 
+!
+!
+multilink bundle-name authenticated
+!
+!
+!
+trunk group FXO
+!
+voice-card 0
+ dspfarm
+ dsp services dspfarm
+!
+!
+!
+voice service voip
+ allow-connections h323 to h323
+ allow-connections h323 to sip
+ allow-connections sip to h323
+ allow-connections sip to sip
+ signaling forward unconditional
+ fax protocol pass-through g711ulaw
+ h323
+  call start slow
+  call preserve 
+  session transport udp
+  h245 tunnel disable
+ modem passthrough nse codec g711ulaw
+ sip
+  bind control source-interface Loopback1
+  bind media source-interface Loopback1
+  registrar server
+!
+voice class codec 1
+ codec preference 1 g711ulaw
+ codec preference 2 g729r8
+!
+voice class codec 2
+ codec preference 1 g729r8
+!
+voice class h323 1
+  h225 timeout tcp establish 3
+  h225 timeout ntf 1000
+  h225 timeout setup 3
+ h225 display-ie ccm-compatible
+!
+!
+voice register global
+ mode srst
+ timeouts interdigit 5
+ system message SIP SRST Enabled
+ max-dn 10
+ max-pool 5
+!
+voice register pool  1
+ translation-profile incoming 4-to-8-DNIS
+ id network 10.1.1.0 255.255.255.0
+ max registrations 5
+ dtmf-relay rtp-nte
+ voice-class codec 1
+!
+!
+!
+voice translation-rule 1
+ rule 1 /^80008...$/ /5096883200/
+ rule 2 /^8410\(00..$\)/ /5096883200/
+ rule 3 /^84103\(2..$\)/ /5096888\1/
+ rule 4 /^84103\(3..$\)/ /5096888\1/
+ rule 5 /^84103\(4..$\)/ /5096888\1/
+ rule 6 /^8410\(12..$\)/ /509927\1/
+ rule 7 /^8410\(38..$\)/ /509927\1/
+!
+voice translation-rule 2
+ rule 1 /\(^0$\)/ /84100099/
+ rule 2 /\(^32..$\)/ /8410\1/
+ rule 3 /\(^33..$\)/ /8410\1/
+ rule 4 /\(^34..$\)/ /8410\1/
+ rule 5 /\(^12..$\)/ /8410\1/
+ rule 6 /\(^38..$\)/ /8410\1/
+!
+!
+voice translation-profile 4-to-8-DNIS
+ translate called 2
+!
+voice translation-profile 8-to-10-ANI
+ translate calling 1
+ translate redirect-called 1
+!
+!
+controller T1 0/1/0
+ cablelength long 0db
+ channel-group 0 timeslots 1-24
+!
+controller T1 0/1/1
+ cablelength long 0db
+ channel-group 0 timeslots 1-24
+!
+controller T1 0/1/2
+ cablelength long 0db
+ channel-group 0 timeslots 1-24
+!
+controller T1 0/1/3
+ cablelength long 0db
+ channel-group 0 timeslots 1-24
+!
+controller T1 0/3/0
+ cablelength long 0db
+ channel-group 0 timeslots 1-24
+!
+controller T1 0/3/1
+ cablelength long 0db
+ channel-group 0 timeslots 1-24
+!
+!
+interface Embedded-Service-Engine0/0
+ no ip address
+ shutdown
+!
+interface GigabitEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+!
+!
+interface GigabitEthernet0/1
+ no ip address
+ shutdown
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/2
+ no ip address
+ shutdown
+ duplex auto
+ speed auto
+!
+interface Serial0/1/0:0
+ bandwidth 1544
+ no ip address
+ encapsulation ppp
+ ppp multilink
+ ppp multilink group 1
+!
+interface Serial0/1/1:0
+ bandwidth 1544
+ no ip address
+ encapsulation ppp
+ ppp multilink
+ ppp multilink group 1
+!
+interface Serial0/1/2:0
+ bandwidth 1544
+ no ip address
+ encapsulation ppp
+ ppp multilink
+ ppp multilink group 1
+!
+interface Serial0/1/3:0
+ bandwidth 1544
+ no ip address
+ encapsulation ppp
+ ppp multilink
+ ppp multilink group 1
+!
+interface Serial0/3/0:0
+ bandwidth 1544
+ no ip address
+ encapsulation ppp
+ ppp multilink
+ ppp multilink group 1
+!
+interface Serial0/3/1:0
+ bandwidth 1544
+ no ip address
+ encapsulation ppp
+!
+!
+ip forward-protocol nd
+!
+!
+!
+snmp-server ifindex persist
+snmp-server trap-source Loopback0
+snmp-server location WA2410
+snmp-server system-shutdown
+snmp-server enable traps snmp authentication linkdown linkup coldstart warmstart
+snmp-server enable traps vrrp
+snmp-server enable traps tty
+snmp-server enable traps envmon
+snmp-server enable traps flash insertion removal
+snmp-server enable traps isdn call-information
+snmp-server enable traps bgp
+snmp-server enable traps config-copy
+snmp-server enable traps config
+snmp-server enable traps entity
+snmp-server enable traps cpu threshold
+snmp-server enable traps syslog
+snmp-server enable traps vtp
+snmp-server enable traps srst
+snmp-server enable traps voice fallback
+snmp-server manager
+voice-port 0/2/0
+ connection plar 5093440379
+ description 2410-FXO to PSTN for 911 (5093440379)
+!
+voice-port 0/2/1
+ connection plar 5099289503
+ description 2411-FXO to PSTN for 911 (5099289503)
+!
+voice-port 0/2/2
+ connection plar 5098912707
+ description 2419-FXO to PSTN for 911 (5098912707)
+!
+voice-port 0/2/3
+!
+!
+mgcp profile default
+!
+sccp local Loopback1
+sccp ccm 10.0.0.1 identifier 1 priority 1 version 7.0 
+sccp ccm 10.0.0.2 identifier 2 priority 2 version 7.0 
+sccp
+!
+sccp ccm group 1
+ description "ROUTER-DSP RESOURCES"
+ bind interface Loopback1
+ associate ccm 1 priority 1
+ associate ccm 2 priority 2
+ associate profile 1 register WASPOK2410-CFB
+!
+dspfarm profile 1 conference  
+ description WASPOK2410-CFB
+ codec g729br8
+ codec g729r8
+ codec g729abr8
+ codec g729ar8
+ codec g711alaw
+ codec g711ulaw
+ associate application SCCP
+ shutdown
+!
+dial-peer voice 1 pots
+ tone ringback alert-no-PI
+ description For Inbound POTS Calls
+ incoming called-number .
+ direct-inward-dial
+!
+dial-peer voice 2 voip
+ tone ringback alert-no-PI
+ description For InBound H323 VoIP
+ modem passthrough nse codec g711ulaw
+ incoming called-number .
+ voice-class codec 1  
+ voice-class h323 1
+ dtmf-relay h245-alphanumeric
+ fax-relay sg3-to-g3
+ fax rate 14400 bytes 48
+ fax protocol t38 version 0 ls-redundancy 0 hs-redundancy 0 fallback pass-through g711ulaw
+ no vad
+!
+dial-peer voice 16 pots
+ description Outbound H323/SRST 9[2-9]11 via FXO
+ preference 1
+ destination-pattern ^9[2-9]11$
+ progress_ind setup enable 3
+ progress_ind progress enable 8
+ progress_ind connect enable 8
+ port 0/2/0
+ forward-digits 3
+!
+dial-peer voice 100 voip
+ tone ringback alert-no-PI
+ description "Inbound 509....... to eatc-an-ucms"
+ preference 1
+ destination-pattern ^509.......$
+ progress_ind setup enable 3
+ progress_ind progress enable 8
+ progress_ind connect enable 8
+ modem passthrough nse codec g711ulaw
+ session target ipv4:10.1.2.6
+ voice-class codec 1  
+ voice-class h323 1
+ dtmf-relay h245-alphanumeric
+ fax-relay sg3-to-g3
+ fax rate 14400 bytes 48
+ fax protocol t38 version 0 ls-redundancy 0 hs-redundancy 0 fallback pass-through g711ulaw
+ no vad
+!
+dial-peer voice 101 voip
+ tone ringback alert-no-PI
+ description "Inbound 509....... to eatc-an-ucms"
+ preference 2
+ destination-pattern ^509.......$
+ progress_ind setup enable 3
+ progress_ind progress enable 8
+ progress_ind connect enable 8
+ modem passthrough nse codec g711ulaw
+ session target ipv4:10.1.3.6
+ voice-class codec 1  
+ voice-class h323 1
+ dtmf-relay h245-alphanumeric
+ fax-relay sg3-to-g3
+ fax rate 14400 bytes 48
+ fax protocol t38 version 0 ls-redundancy 0 hs-redundancy 0 fallback pass-through g711ulaw
+ no vad
+!
+dial-peer voice 1020 pots
+ description Outbound H323/SRST 9[2-9]11 via FXO-2410
+ preference 1
+ destination-pattern ^24109[2-9]11$
+ progress_ind setup enable 3
+ progress_ind progress enable 8
+ progress_ind connect enable 8
+ port 0/2/0
+ forward-digits 3
+!
+dial-peer voice 1021 pots
+ description Outbound H323/SRST 9[2-9]11 via FXO-2411
+ preference 1
+ destination-pattern ^24119[2-9]11$
+ progress_ind setup enable 3
+ progress_ind progress enable 8
+ progress_ind connect enable 8
+ port 0/2/1
+ forward-digits 3
+!
+dial-peer voice 1022 pots
+ description Outbound H323/SRST 9[2-9]11 via FXO-2419
+ preference 1
+ destination-pattern ^24199[2-9]11$
+ progress_ind setup enable 3
+ progress_ind progress enable 8
+ progress_ind connect enable 8
+ port 0/2/2
+ forward-digits 3
+!
+!
+!
+!
+gatekeeper
+ shutdown
+!
+!
+call-manager-fallback
+ max-conferences 8 gain -6
+ transfer-system full-consult
+ timeouts interdigit 5
+ protocol mode ipv4
+ ip source-address 10.0.10.161 port 2000
+ max-ephones 120
+ max-dn 200 dual-line
+ after-hours block pattern 1 91900 7-24
+ system message primary CallManager Fallback
+ system message secondary CallMgr Fallback
+ dialplan-pattern 1 50968832.. extension-length 8 extension-pattern 841032..
+ dialplan-pattern 2 50968833.. extension-length 8 extension-pattern 841033..
+ dialplan-pattern 3 50968834.. extension-length 8 extension-pattern 841034..
+ dialplan-pattern 4 50992712.. extension-length 8 extension-pattern 841012..
+ dialplan-pattern 5 50992738.. extension-length 8 extension-pattern 841038..
+ transfer-pattern .T
+ keepalive 15
+ default-destination 84100099
+ alias 1 5096883200 to 84100001 preference 1
+ alias 2 5096883200 to 84100002 preference 2
+ alias 3 5096883200 to 84100003 preference 3
+ alias 4 5096883200 to 84100004 preference 4
+ alias 50 0 to 84100099
+ translation-profile incoming 4-to-8-DNIS
+ call-park system application
+ call-forward pattern .T
+ call-forward busy 84100099
+ call-forward noan 84100099 timeout 30
+ moh-file-buffer 10000
+ moh "p1026549.wav"
+ multicast moh 239.1.1.1 port 16384
+ time-zone 5
+!
+!
